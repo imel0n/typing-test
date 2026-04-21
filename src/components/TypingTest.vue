@@ -1,11 +1,14 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, useTemplateRef } from "vue";
 import restartIcon from "@/assets/restartIcon.png";
 import { wordLists } from "@/assets/wordLists.js";
 
 // #region displayLogic
 var wordList = wordLists.englishEasy;
 var generationSize = 300;
+const generatedWords = ref([]);
+var currentWordIdx = 0;
+const currentWord = ref(null);
 
 function generateWords() {
   const res = [];
@@ -15,45 +18,47 @@ function generateWords() {
     res.push(wordList[idx]);
   }
 
-  return res;
-}
-
-const generatedWords = ref(generateWords());
-var currentWordIdx = 0;
-var currentWord = ref(generatedWords.value[0]);
-
-function advanceCurrentWord() {
-  if (currentWordIdx < generationSize) currentWordIdx++;
-  currentWord.value = generatedWords.value[currentWordIdx];
-}
-
-function isCurrentWord(word) {
-  return word === currentWord;
+  generatedWords.value = res;
+  currentWordIdx = 0;
+  currentWord.value = res[0];
 }
 // #endregion
 
 // #region inputLogic
 var inputContent = ref("");
 const typingInput = ref(null);
+const typingOutputResults = ref([]);
+const currentlyCorrect = ref(true);
 
 function clearInput() {
   inputContent.value = "";
 }
 
-function handleKeyDown(event) {
-  if (/^[a-zA-Z]$/.test(event.key)) {
+function handleKeyUp(event) {
+  if (timer == null && /^[a-zA-Z]$/.test(event.key)) {
     startCountdown();
   }
+
+  currentlyCorrect.value = currentWord.value.startsWith(inputContent.value);
 }
 
 function handleSpace() {
-  if (inputContent.value != "") advanceCurrentWord();
-  clearInput();
+  if (inputContent.value != "") {
+    advanceCurrentWord();
+    clearInput();
+  }
 }
-// #endregion
 
-// #region matchWordLogic
+function advanceCurrentWord() {
+  currentlyCorrect.value = inputContent.value === currentWord.value;
+  typingOutputResults.value.push(currentlyCorrect.value);
+  currentlyCorrect.value = true;
 
+  if (currentWordIdx < generationSize) {
+    currentWordIdx++;
+    currentWord.value = generatedWords.value[currentWordIdx];
+  }
+}
 // #endregion
 
 // #region timerLogic
@@ -91,8 +96,13 @@ function startCountdown() {
 function handleNewTest() {
   clearInput();
   resetCountdown();
+  generateWords();
   typingInput.value.focus();
 }
+
+onMounted(() => {
+  handleNewTest();
+});
 </script>
 
 <template>
@@ -101,7 +111,17 @@ function handleNewTest() {
       <div
         v-for="(word, index) in generatedWords"
         :key="index"
-        :class="['word-wrapper', { 'is-active': index === currentWordIdx }]"
+        :class="[
+          'word-wrapper',
+          {
+            'is-active': index === currentWordIdx,
+            'is-incorrect': index === currentWordIdx && !currentlyCorrect,
+            'was-correct':
+              index < currentWordIdx && typingOutputResults[index] == true,
+            'was-incorrect':
+              index < currentWordIdx && typingOutputResults[index] == false,
+          },
+        ]"
       >
         {{ word }}
       </div>
@@ -112,7 +132,7 @@ function handleNewTest() {
         class="typing-input"
         v-model="inputContent"
         ref="typingInput"
-        @keydown="handleKeyDown"
+        @keyup="handleKeyUp"
         @keydown.space.prevent="handleSpace"
       />
       <div class="timer">{{ formatTime(timeLeft) }}</div>
@@ -120,7 +140,7 @@ function handleNewTest() {
         <img class="button-img" :src="restartIcon" />
       </button>
     </div>
-    <p>{{ currentWord }}</p>
+    <p>{{ inputContent }}</p>
   </div>
 </template>
 
@@ -159,7 +179,19 @@ function handleNewTest() {
 }
 
 .word-wrapper.is-active {
-  background: skyblue;
+  background: lightgrey;
+}
+
+.word-wrapper.is-incorrect {
+  background: red;
+}
+
+.word-wrapper.was-correct {
+  color: green;
+}
+
+.word-wrapper.was-incorrect {
+  color: red;
 }
 
 .input-container {
