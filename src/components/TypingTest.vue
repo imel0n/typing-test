@@ -7,6 +7,7 @@ import { wordLists } from "@/assets/wordLists.js";
 var wordList = wordLists.englishEasy;
 var generationSize = 300;
 const generatedWords = ref([]);
+const generatedWordLengths = [];
 var currentWordIdx = 0;
 const currentWord = ref(null);
 
@@ -15,7 +16,9 @@ function generateWords() {
   const lim = wordList.length;
   for (var i = 0; i < generationSize; i++) {
     const idx = Math.floor(Math.random() * lim);
-    res.push(wordList[idx]);
+    const word = wordList[idx];
+    res.push(word);
+    generatedWordLengths.push(word.length);
   }
 
   generatedWords.value = res;
@@ -73,6 +76,9 @@ async function handleSpaceDown() {
 function advanceCurrentWord() {
   currentlyCorrect.value = inputContent.value == currentWord.value;
   typingOutputResults.value.push(currentlyCorrect.value);
+
+  if (currentlyCorrect.value == true) incrementCorrectCharacters();
+
   currentlyCorrect.value = true;
 
   if (currentWordIdx < generationSize) {
@@ -104,6 +110,7 @@ function startCountdown() {
 
   timer = setInterval(() => {
     timeLeft.value--;
+    getWpm();
 
     if (timeLeft.value <= 0) {
       clearInterval(timer);
@@ -114,7 +121,9 @@ function startCountdown() {
 }
 // #endregion
 
+// #region testLogic
 function handleNewTest() {
+  resetTest();
   clearInput();
   resetCountdown();
   generateWords();
@@ -122,9 +131,28 @@ function handleNewTest() {
   typingInputRef.value.focus();
 }
 
+var correctCharacters = 0;
+var currentWpm = 0;
+
+function incrementCorrectCharacters() {
+  correctCharacters += generatedWordLengths[currentWordIdx];
+}
+
+function resetTest() {
+  correctCharacters = 0;
+  currentWpm = 0;
+}
+
+function getWpm() {
+  currentWpm = (correctCharacters * 60) / (60 - timeLeft.value) / 5;
+}
+// #endregion
+
+// #region lifecycleHooks
 onMounted(() => {
   handleNewTest();
 });
+// #endregion
 </script>
 
 <template>
@@ -163,6 +191,7 @@ onMounted(() => {
       </button>
     </div>
   </div>
+  <p>Correct characters: {{ correctCharacters }} | WPM: {{ currentWpm }}</p>
 </template>
 
 <style scoped>
