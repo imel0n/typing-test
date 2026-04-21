@@ -140,7 +140,6 @@ onMounted(() => {
         <img class="button-img" :src="restartIcon" />
       </button>
     </div>
-    <p>{{ inputContent }}</p>
   </div>
 </template>
 
