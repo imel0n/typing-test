@@ -5,7 +5,10 @@
     <div class="middle-container">
       <div class="nav-bar">Nav Bar</div>
 
-      <div class="page-content">Content</div>
+      <div class="page-content">
+        Content
+        <router-view />
+      </div>
     </div>
 
     <div class="page-footer">Footer</div>
@@ -21,12 +24,17 @@
 
 .page-header {
   background: paleturquoise;
-  flex: 0.5;
+  flex: 0.1;
+}
+
+.page-footer {
+  background: orange;
+  flex: 0.05;
 }
 
 .middle-container {
   display: flex;
-  flex: 1;
+  flex: 0.85;
 }
 
 .nav-bar {
@@ -37,9 +45,5 @@
 .page-content {
   background: skyblue;
   flex: 0.8;
-}
-
-.page-footer {
-  background: orange;
 }
 </style>
