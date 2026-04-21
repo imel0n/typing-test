@@ -12,7 +12,6 @@ import NavBar from "./NavBar.vue";
       </div>
 
       <div class="page-content">
-        Content
         <router-view />
       </div>
     </div>
@@ -56,6 +55,5 @@ import NavBar from "./NavBar.vue";
 .page-content {
   flex: 0.85;
   margin: 20px;
-  padding: 20px;
 }
 </style>

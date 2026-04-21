@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import AppLayout from "@/components/AppLayout.vue";
 
-import BasicTestView from "@/views/BasicTestView.vue";
+import TypingTestView from "@/views/TypingTestView.vue";
 
 const routes = [
   {
@@ -11,7 +11,7 @@ const routes = [
     children: [
       {
         path: "",
-        component: BasicTestView,
+        component: TypingTestView,
       }
     ]
   }
