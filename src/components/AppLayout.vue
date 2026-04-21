@@ -1,9 +1,15 @@
+<script setup>
+import NavBar from "./NavBar.vue";
+</script>
+
 <template>
   <div class="main-container">
     <div class="page-header">Header</div>
 
     <div class="middle-container">
-      <div class="nav-bar">Nav Bar</div>
+      <div class="nav-content">
+        <NavBar />
+      </div>
 
       <div class="page-content">
         Content
@@ -23,27 +29,33 @@
 }
 
 .page-header {
-  background: paleturquoise;
+  background: #344450;
+
   flex: 0.1;
 }
 
 .page-footer {
-  background: orange;
+  background: #344450;
+
   flex: 0.05;
 }
 
 .middle-container {
+  background: #a9d8ff;
+
   display: flex;
   flex: 0.85;
 }
 
-.nav-bar {
-  background: lightgreen;
-  flex: 0.2;
+.nav-content {
+  flex: 0.15;
+  border-radius: 25px;
+  margin: 20px;
 }
 
 .page-content {
-  background: skyblue;
-  flex: 0.8;
+  flex: 0.85;
+  margin: 20px;
+  padding: 20px;
 }
 </style>
