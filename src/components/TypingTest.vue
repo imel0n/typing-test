@@ -4,7 +4,7 @@ import restartIcon from "@/assets/restartIcon.png";
 import { wordLists } from "@/assets/wordLists.js";
 
 // #region displayLogic
-var wordList = wordLists.englishEasy;
+var wordList = wordLists.english1000;
 var generationSize = 300;
 const generatedWords = ref([]);
 const generatedWordLengths = [];
@@ -97,7 +97,7 @@ function advanceCurrentWord() {
 // #endregion
 
 // #region timerLogic
-var testDuration = ref(10);
+var testDuration = ref(60);
 var timeLeft = ref(testDuration.value);
 var timer = null;
 
