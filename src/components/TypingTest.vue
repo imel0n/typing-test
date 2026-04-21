@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, useTemplateRef } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import restartIcon from "@/assets/restartIcon.png";
 import { wordLists } from "@/assets/wordLists.js";
 
@@ -22,11 +22,30 @@ function generateWords() {
   currentWordIdx = 0;
   currentWord.value = res[0];
 }
+
+const displayContainerRef = ref(null);
+
+function handleScrollDisplay() {
+  const displayContainer = displayContainerRef.value;
+  const activeWordWrapper = displayContainer.querySelector(
+    ".word-wrapper.is-active",
+  );
+
+  displayContainer.scrollTo({
+    top: activeWordWrapper.offsetTop - displayContainer.offsetTop - 14,
+    left: 0,
+  });
+}
+
+function scrollDisplayToTop() {
+  const displayContainer = displayContainerRef.value;
+  displayContainer.scrollTo({ top: 0, left: 0 });
+}
 // #endregion
 
 // #region inputLogic
 var inputContent = ref("");
-const typingInput = ref(null);
+const typingInputRef = ref(null);
 const typingOutputResults = ref([]);
 const currentlyCorrect = ref(true);
 
@@ -42,15 +61,17 @@ function handleKeyUp(event) {
   currentlyCorrect.value = currentWord.value.startsWith(inputContent.value);
 }
 
-function handleSpace() {
+async function handleSpaceDown() {
   if (inputContent.value != "") {
     advanceCurrentWord();
     clearInput();
+    await nextTick();
+    handleScrollDisplay();
   }
 }
 
 function advanceCurrentWord() {
-  currentlyCorrect.value = inputContent.value === currentWord.value;
+  currentlyCorrect.value = inputContent.value == currentWord.value;
   typingOutputResults.value.push(currentlyCorrect.value);
   currentlyCorrect.value = true;
 
@@ -97,7 +118,8 @@ function handleNewTest() {
   clearInput();
   resetCountdown();
   generateWords();
-  typingInput.value.focus();
+  scrollDisplayToTop();
+  typingInputRef.value.focus();
 }
 
 onMounted(() => {
@@ -107,7 +129,7 @@ onMounted(() => {
 
 <template>
   <div class="typing-test-container">
-    <div class="display-container">
+    <div class="display-container" ref="displayContainerRef">
       <div
         v-for="(word, index) in generatedWords"
         :key="index"
@@ -131,9 +153,9 @@ onMounted(() => {
         type="text"
         class="typing-input"
         v-model="inputContent"
-        ref="typingInput"
+        ref="typingInputRef"
         @keyup="handleKeyUp"
-        @keydown.space.prevent="handleSpace"
+        @keydown.space.prevent="handleSpaceDown"
       />
       <div class="timer">{{ formatTime(timeLeft) }}</div>
       <button class="new-test-button" @click="handleNewTest()">
@@ -171,6 +193,7 @@ onMounted(() => {
 
 .word-wrapper {
   font-size: 30px;
+  height: 38px;
   font-family: "Times New Roman", serif;
   margin: 2px;
   padding: 0px 4px;
