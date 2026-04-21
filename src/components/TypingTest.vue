@@ -1,16 +1,16 @@
 <script setup>
 import { ref } from "vue";
 import restartIcon from "@/assets/restartIcon.png";
-
-// #region displayLogic
 import { wordLists } from "@/assets/wordLists.js";
 
+// #region displayLogic
 var wordList = wordLists.englishEasy;
+var generationSize = 300;
 
 function generateWords() {
   const res = [];
   const lim = wordList.length;
-  for (var i = 0; i < 300; i++) {
+  for (var i = 0; i < generationSize; i++) {
     const idx = Math.floor(Math.random() * lim);
     res.push(wordList[idx]);
   }
@@ -19,6 +19,17 @@ function generateWords() {
 }
 
 const generatedWords = ref(generateWords());
+var currentWordIdx = 0;
+var currentWord = ref(generatedWords.value[0]);
+
+function advanceCurrentWord() {
+  if (currentWordIdx < generationSize) currentWordIdx++;
+  currentWord.value = generatedWords.value[currentWordIdx];
+}
+
+function isCurrentWord(word) {
+  return word === currentWord;
+}
 // #endregion
 
 // #region inputLogic
@@ -36,8 +47,13 @@ function handleKeyDown(event) {
 }
 
 function handleSpace() {
+  if (inputContent.value != "") advanceCurrentWord();
   clearInput();
 }
+// #endregion
+
+// #region matchWordLogic
+
 // #endregion
 
 // #region timerLogic
@@ -82,7 +98,11 @@ function handleNewTest() {
 <template>
   <div class="typing-test-container">
     <div class="display-container">
-      <div v-for="word in generatedWords" class="word-wrapper">
+      <div
+        v-for="(word, index) in generatedWords"
+        :key="index"
+        :class="['word-wrapper', { 'is-active': index === currentWordIdx }]"
+      >
         {{ word }}
       </div>
     </div>
@@ -100,6 +120,7 @@ function handleNewTest() {
         <img class="button-img" :src="restartIcon" />
       </button>
     </div>
+    <p>{{ currentWord }}</p>
   </div>
 </template>
 
