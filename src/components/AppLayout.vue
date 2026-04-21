@@ -49,11 +49,11 @@ import NavBar from "./NavBar.vue";
 .nav-content {
   flex: 0.15;
   border-radius: 25px;
-  margin: 20px;
+  margin: 20px 10px 20px 20px;
 }
 
 .page-content {
   flex: 0.85;
-  margin: 20px;
+  margin: 20px 20px 20px 10px;
 }
 </style>
