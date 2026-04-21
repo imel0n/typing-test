@@ -56,29 +56,37 @@ function clearInput() {
   inputContent.value = "";
 }
 
+function handleCheckCorrectness() {
+  const cur = currentWord.value;
+  const inp = inputContent.value;
+
+  currentlyCorrect.value =
+    inp.length <= cur.length ? cur.startsWith(inp) : false;
+}
+
 function handleKeyUp(event) {
   if (timer == null && /^[a-zA-Z]$/.test(event.key)) {
     startCountdown();
   }
 
-  currentlyCorrect.value = currentWord.value.startsWith(inputContent.value);
+  handleCheckCorrectness();
 }
 
 async function handleSpaceDown() {
-  if (inputContent.value != "") {
+  if (inputContent.value != "" && !isTestLocked) {
     advanceCurrentWord();
     clearInput();
     await nextTick();
     handleScrollDisplay();
   }
+
+  clearInput();
 }
 
 function advanceCurrentWord() {
   currentlyCorrect.value = inputContent.value == currentWord.value;
   typingOutputResults.value.push(currentlyCorrect.value);
-
   if (currentlyCorrect.value == true) incrementCorrectCharacters();
-
   currentlyCorrect.value = true;
 
   if (currentWordIdx < generationSize) {
@@ -89,7 +97,8 @@ function advanceCurrentWord() {
 // #endregion
 
 // #region timerLogic
-var timeLeft = ref(60);
+var testDuration = ref(10);
+var timeLeft = ref(testDuration.value);
 var timer = null;
 
 function formatTime(seconds) {
@@ -102,7 +111,7 @@ function formatTime(seconds) {
 function resetCountdown() {
   if (timer != null) clearInterval(timer);
   timer = null;
-  timeLeft.value = 60;
+  timeLeft.value = testDuration.value;
 }
 
 function startCountdown() {
@@ -113,6 +122,8 @@ function startCountdown() {
     getWpm();
 
     if (timeLeft.value <= 0) {
+      handleConcludeTest();
+
       clearInterval(timer);
       timer = null;
       timeLeft.value = 0;
@@ -122,20 +133,25 @@ function startCountdown() {
 // #endregion
 
 // #region testLogic
-function handleNewTest() {
+var correctCharacters = 0;
+var currentWpm = 0;
+var finalWpm = 0;
+var isTestLocked = false;
+
+async function handleNewTest() {
   resetTest();
   clearInput();
   resetCountdown();
   generateWords();
+
+  isTestLocked = false;
+  await nextTick();
   scrollDisplayToTop();
   typingInputRef.value.focus();
 }
 
-var correctCharacters = 0;
-var currentWpm = 0;
-
 function incrementCorrectCharacters() {
-  correctCharacters += generatedWordLengths[currentWordIdx];
+  correctCharacters += generatedWordLengths[currentWordIdx] + 1;
 }
 
 function resetTest() {
@@ -144,7 +160,14 @@ function resetTest() {
 }
 
 function getWpm() {
-  currentWpm = (correctCharacters * 60) / (60 - timeLeft.value) / 5;
+  currentWpm = Math.round(
+    (correctCharacters * 60) / (testDuration.value - timeLeft.value) / 5,
+  );
+}
+
+function handleConcludeTest() {
+  isTestLocked = true;
+  finalWpm = currentWpm;
 }
 // #endregion
 
@@ -157,7 +180,10 @@ onMounted(() => {
 
 <template>
   <div class="typing-test-container">
-    <div class="display-container" ref="displayContainerRef">
+    <div
+      :class="['display-container', { hidden: isTestLocked }]"
+      ref="displayContainerRef"
+    >
       <div
         v-for="(word, index) in generatedWords"
         :key="index"
@@ -191,7 +217,10 @@ onMounted(() => {
       </button>
     </div>
   </div>
-  <p>Correct characters: {{ correctCharacters }} | WPM: {{ currentWpm }}</p>
+  <p>
+    Correct characters: {{ correctCharacters }} | WPM: {{ currentWpm }} | Final
+    WPM: {{ finalWpm }}
+  </p>
 </template>
 
 <style scoped>
@@ -218,6 +247,10 @@ onMounted(() => {
   row-gap: 8px;
   padding: 12px;
   overflow: hidden;
+}
+
+.display-container.hidden {
+  display: none;
 }
 
 .word-wrapper {
