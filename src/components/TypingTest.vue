@@ -1,9 +1,24 @@
 <script setup>
 import { ref } from "vue";
 import restartIcon from "@/assets/restartIcon.png";
-import { wordLists } from "@/assets/wordLists.js";
 
 // #region displayLogic
+import { wordLists } from "@/assets/wordLists.js";
+
+var wordList = wordLists.englishEasy;
+
+function generateWords() {
+  const res = [];
+  const lim = wordList.length;
+  for (var i = 0; i < 300; i++) {
+    const idx = Math.floor(Math.random() * lim);
+    res.push(wordList[idx]);
+  }
+
+  return res;
+}
+
+const generatedWords = ref(generateWords());
 // #endregion
 
 // #region inputLogic
@@ -12,6 +27,12 @@ const typingInput = ref(null);
 
 function clearInput() {
   inputContent.value = "";
+}
+
+function handleKeyDown(event) {
+  if (/^[a-zA-Z]$/.test(event.key)) {
+    startCountdown();
+  }
 }
 
 function handleSpace() {
@@ -60,15 +81,19 @@ function handleNewTest() {
 
 <template>
   <div class="typing-test-container">
-    <div class="display-container"></div>
+    <div class="display-container">
+      <div v-for="word in generatedWords" class="word-wrapper">
+        {{ word }}
+      </div>
+    </div>
     <div class="input-container">
       <input
         type="text"
         class="typing-input"
         v-model="inputContent"
         ref="typingInput"
-        @keydown="startCountdown()"
-        @keydown.space.prevent="handleSpace()"
+        @keydown="handleKeyDown"
+        @keydown.space.prevent="handleSpace"
       />
       <div class="timer">{{ formatTime(timeLeft) }}</div>
       <button class="new-test-button" @click="handleNewTest()">
@@ -93,9 +118,27 @@ function handleNewTest() {
 
 .display-container {
   background: white;
-  height: 120px;
-
+  height: 84px;
   border-radius: 10px 10px 0 0;
+  max-width: 100%;
+
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.word-wrapper {
+  font-size: 30px;
+  font-family: "Times New Roman", serif;
+  margin: 2px;
+  padding: 0px 4px;
+  border-radius: 5px;
+}
+
+.word-wrapper.is-active {
+  background: skyblue;
 }
 
 .input-container {
