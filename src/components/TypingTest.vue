@@ -3,29 +3,7 @@ import { ref, onMounted, nextTick } from "vue";
 import restartIcon from "@/assets/restartIcon.png";
 import { wordLists } from "@/assets/wordLists.js";
 
-// #region displayLogic
-var wordList = wordLists.english1000;
-var generationSize = 300;
-const generatedWords = ref([]);
-const generatedWordLengths = [];
-var currentWordIdx = 0;
-const currentWord = ref(null);
-
-function generateWords() {
-  const res = [];
-  const lim = wordList.length;
-  for (var i = 0; i < generationSize; i++) {
-    const idx = Math.floor(Math.random() * lim);
-    const word = wordList[idx];
-    res.push(word);
-    generatedWordLengths.push(word.length);
-  }
-
-  generatedWords.value = res;
-  currentWordIdx = 0;
-  currentWord.value = res[0];
-}
-
+//  #region displayLogic
 const displayContainerRef = ref(null);
 
 function handleScrollDisplay() {
@@ -44,10 +22,10 @@ function scrollDisplayToTop() {
   const displayContainer = displayContainerRef.value;
   displayContainer.scrollTo({ top: 0, left: 0 });
 }
-// #endregion
+//  #endregion
 
-// #region inputLogic
-var inputContent = ref("");
+//  #region inputLogic
+let inputContent = ref("");
 const typingInputRef = ref(null);
 const typingOutputResults = ref([]);
 const currentlyCorrect = ref(true);
@@ -94,12 +72,13 @@ function advanceCurrentWord() {
     currentWord.value = generatedWords.value[currentWordIdx];
   }
 }
-// #endregion
+//  #endregion inputLogic
 
-// #region timerLogic
-var testDuration = ref(60);
-var timeLeft = ref(testDuration.value);
-var timer = null;
+//  #region timerLogic
+let testDuration = ref(15);
+let timeLeft = ref(testDuration.value);
+let timer = null;
+let isTimerHidden = ref(false);
 
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
@@ -130,13 +109,44 @@ function startCountdown() {
     }
   }, 1000);
 }
-// #endregion
 
-// #region testLogic
-var correctCharacters = 0;
-var currentWpm = 0;
-var finalWpm = 0;
-var isTestLocked = false;
+function toggleTimerHidden() {
+  isTimerHidden.value = !isTimerHidden.value;
+  console.log("isTimerHidden changed to ", isTimerHidden.value);
+}
+//  #endregion timerLogic
+
+//  #region testLogic
+
+//    #region wordGeneration
+let wordList = wordLists.english300;
+let generationSize = 300;
+const generatedWords = ref([]);
+const generatedWordLengths = [];
+let currentWordIdx = 0;
+const currentWord = ref(null);
+
+function generateWords() {
+  const res = [];
+  const lim = wordList.length;
+  for (let i = 0; i < generationSize; i++) {
+    const idx = Math.floor(Math.random() * lim);
+    const word = wordList[idx];
+    res.push(word);
+    generatedWordLengths.push(word.length);
+  }
+
+  generatedWords.value = res;
+  currentWordIdx = 0;
+  currentWord.value = res[0];
+}
+//    #endregion wordGeneration
+
+//    #region wpmCalculator
+let correctCharacters = 0;
+let currentWpm = 0;
+let finalWpm = 0;
+let isTestLocked = false;
 
 async function handleNewTest() {
   resetTest();
@@ -144,6 +154,8 @@ async function handleNewTest() {
   resetCountdown();
   generateWords();
 
+  currentlyCorrect.value = true;
+  typingOutputResults.value = [];
   isTestLocked = false;
   await nextTick();
   scrollDisplayToTop();
@@ -165,17 +177,25 @@ function getWpm() {
   );
 }
 
+function setFinalWpm() {
+  finalWpm = Math.round((correctCharacters * 60) / testDuration.value / 5);
+}
+
 function handleConcludeTest() {
   isTestLocked = true;
-  finalWpm = currentWpm;
+  setFinalWpm();
+  currentWpm = 0;
 }
-// #endregion
+//    #endregion wpmCalculator
 
-// #region lifecycleHooks
+//  #endregion testLogic
+
+//  #region lifecycleHooks
 onMounted(() => {
   handleNewTest();
+  finalWpm = null;
 });
-// #endregion
+//  #endregion
 </script>
 
 <template>
@@ -202,7 +222,7 @@ onMounted(() => {
         {{ word }}
       </div>
     </div>
-    <div class="input-container">
+    <div :class="['input-container', { 'test-locked': isTestLocked }]">
       <input
         type="text"
         class="typing-input"
@@ -211,16 +231,17 @@ onMounted(() => {
         @keyup="handleKeyUp"
         @keydown.space.prevent="handleSpaceDown"
       />
-      <div class="timer">{{ formatTime(timeLeft) }}</div>
+      <div class="timer" @click="toggleTimerHidden">
+        <div :class="['timer-text', { 'is-hidden': isTimerHidden }]">
+          {{ formatTime(timeLeft) }}
+        </div>
+      </div>
       <button class="new-test-button" @click="handleNewTest()">
         <img class="button-img" :src="restartIcon" />
       </button>
     </div>
   </div>
-  <p>
-    Correct characters: {{ correctCharacters }} | WPM: {{ currentWpm }} | Final
-    WPM: {{ finalWpm }}
-  </p>
+  <p>Current WPM: {{ currentWpm }} | Previous Test WPM: {{ finalWpm }}</p>
 </template>
 
 <style scoped>
@@ -290,6 +311,10 @@ onMounted(() => {
   padding: 10px;
 }
 
+.input-container.test-locked {
+  border-radius: 10px;
+}
+
 .typing-input {
   width: 50%;
   font-size: 24px;
@@ -305,10 +330,21 @@ onMounted(() => {
   height: 100%;
   border-radius: 5px;
   padding: 0px 10px;
+  min-width: 42px;
 
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+}
+
+.timer-text {
+  color: white;
+  font-size: 22px;
+}
+
+.timer-text.is-hidden {
+  display: none;
 }
 
 .new-test-button {
