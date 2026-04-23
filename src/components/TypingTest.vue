@@ -246,7 +246,7 @@ onMounted(() => {
 
 <style scoped>
 .typing-test-container {
-  background: #baddfc;
+  background: var(--secondary-bg-colour);
 
   border-radius: 20px;
   display: flex;
@@ -300,8 +300,7 @@ onMounted(() => {
 }
 
 .input-container {
-  background: #a6c8e7;
-
+  background: var(--primary-fg-colour);
   border-radius: 0 0 10px 10px;
   height: 50px;
   display: flex;
@@ -323,7 +322,7 @@ onMounted(() => {
 }
 
 .timer {
-  background: #3b4e5c;
+  background: var(--10ff-dark-blue);
   color: white;
   font-size: 22px;
 
@@ -351,7 +350,7 @@ onMounted(() => {
   height: 100%;
   border-radius: 5px;
   border: none;
-  background: #428bca;
+  background: var(--10ff-normal-blue);
   color: white;
   cursor: pointer;
   padding: 15px;

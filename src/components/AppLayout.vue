@@ -28,22 +28,21 @@ import NavBar from "./NavBar.vue";
 }
 
 .page-header {
-  background: #344450;
+  background: var(--10ff-dark-blue);
 
   flex: 0.1;
 }
 
 .page-footer {
-  background: #344450;
+  display: none;
+  background: var(--10ff-dark-blue);
 
-  flex: 0.05;
+  /* flex: 0.05; */
 }
 
 .middle-container {
-  background: #a9d8ff;
-
   display: flex;
-  flex: 0.85;
+  flex: 0.9;
 }
 
 .nav-content {

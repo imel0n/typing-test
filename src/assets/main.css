@@ -1,4 +1,15 @@
+:root {
+  --primary-bg-colour: #a9d8ff;
+  --secondary-bg-colour: #baddfc;
+
+  --primary-fg-colour: #a6c8e7;
+
+  --10ff-dark-blue: #344450;
+  --10ff-normal-blue: #428bca;
+}
+
 html, body {
+  background: var(--primary-bg-colour);
   margin: 0;
   padding: 0;
   height: 100%;
