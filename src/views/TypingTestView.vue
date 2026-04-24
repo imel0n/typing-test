@@ -1,11 +1,12 @@
 <script setup>
 import TypingTest from "@/components/TypingTest.vue";
+import TestResult from "@/components/TestResult.vue";
 </script>
 
 <template>
   <div class="typing-test-view-main-container">
     <TypingTest />
-    This is the typing test container.
+    <TestResult />
   </div>
 </template>
 
